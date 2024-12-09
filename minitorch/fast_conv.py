@@ -91,8 +91,32 @@ def _tensor_conv1d(
     s2 = weight_strides
 
     # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
+    
+    for b in prange(batch_):
+        for oc in prange(out_channels):
+            for ow in prange(out_width):
+                acc = 0.0
 
+                # Iterate over input channels and kernel width
+                for ic in range(in_channels):
+                    for kw_idx in range(kw):
+                        if reverse:
+                            curr_w = kw - kw_idx - 1
+                            curr_pos = ow - kw_idx
+                        else:
+                            curr_w = kw_idx
+                            curr_pos = ow + kw_idx
+
+                        # Check if within bounds of the input width
+                        if 0 <= curr_pos < width:
+                            in_pos = b * s1[0] + ic * s1[1] + curr_pos * s1[2]
+                            w_pos = oc * s2[0] + ic * s2[1] + curr_w * s2[2]
+
+                            acc += input[in_pos] * weight[w_pos]
+
+                # Compute output position and store the result
+                out_pos = b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
+                out[out_pos] = acc
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
 
@@ -203,7 +227,8 @@ def _tensor_conv2d(
         reverse (bool): anchor weight at top-left or bottom-right
 
     """
-    batch_, out_channels, _, _ = out_shape
+
+    batch_, out_channels, out_height, out_width = out_shape
     batch, in_channels, height, width = input_shape
     out_channels_, in_channels_, kh, kw = weight_shape
 
@@ -220,9 +245,52 @@ def _tensor_conv2d(
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
 
     # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+
+    for batch_idx in prange(batch_):
+        for channel_out_idx in range(out_channels):
+            for row_out_idx in range(out_height):
+                for col_out_idx in range(out_width):
+                    result_accumulator = 0.0
+
+                    for channel_in_idx in range(in_channels):
+                        for kernel_row_idx in range(kh):
+                            for kernel_col_idx in range(kw):
+                                if reverse:
+                                    current_row = row_out_idx - kh + 1 + kernel_row_idx
+                                    current_col = col_out_idx - kw + 1 + kernel_col_idx
+                                else:
+                                    current_row = row_out_idx + kernel_row_idx
+                                    current_col = col_out_idx + kernel_col_idx
+
+                                if 0 <= current_row < height and 0 <= current_col < width:
+                                    input_position = (
+                                        batch_idx * s10
+                                        + channel_in_idx * s11
+                                        + current_row * s12
+                                        + current_col * s13
+                                    )
+                                    weight_position = (
+                                        channel_out_idx * s20
+                                        + channel_in_idx * s21
+                                        + kernel_row_idx * s22
+                                        + kernel_col_idx * s23
+                                    )
+
+                                    result_accumulator += (
+                                        input[input_position] * weight[weight_position]
+                                    )
+
+                    output_position = (
+                        batch_idx * out_strides[0]
+                        + channel_out_idx * out_strides[1]
+                        + row_out_idx * out_strides[2]
+                        + col_out_idx * out_strides[3]
+                    )
+                    out[output_position] = result_accumulator
 
 
+
+    
 tensor_conv2d = njit(_tensor_conv2d, parallel=True, fastmath=True)
 
 
