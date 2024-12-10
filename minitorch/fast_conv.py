@@ -133,18 +133,6 @@ class Conv1dFun(Function):
 
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
-        """Computes a 1D convolution operation on the input tensor using the given weight tensor.
-
-        Args:
-            ctx (Context): The context in which the operation is performed.
-            input (Tensor): The input tensor to which the convolution operation is applied.
-            weight (Tensor): The weight tensor used for the convolution operation.
-
-        Returns:
-            Tensor: The output tensor resulting from the convolution operation.
-            
-        """
-    def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
         """Compute a 1D Convolution
 
         Args:
@@ -370,7 +358,7 @@ class Conv2dFun(Function):
         -------
             Tuple[Tensor, Tensor]
                 A tuple containing the gradients of the loss with respect to the input and weights.
-                
+
         """
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape

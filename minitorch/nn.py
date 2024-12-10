@@ -62,14 +62,14 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
 
 def avgpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
     """Applies a 2D average pooling over an input signal composed of several input planes.
-
+    
     Args:
-    - input: Input tensor of shape (batch_size, num_channels, height, width)
-    - kernel: Size of the window to take the average over. Expected to be a tuple of two integers (height, width)
-
+        input: Input tensor of shape (batch, channel, height, width)
+        kernel: Tuple of (kernel_height, kernel_width) for pooling
+        
     Returns:
-    - Output tensor after applying average pooling
-
+        Pooled output tensor
+        
     """
     reshaped_tensor, pooled_height, pooled_width = tile(input, kernel)
     return (
@@ -89,14 +89,14 @@ fastmax = FastOps.reduce(operators.max, -float("inf"))
 
 def argmax(input: Tensor, dim: int) -> Tensor:
     """Returns a tensor indicating the positions of the maximum values in the input tensor along the specified dimension.
-
+    
     Args:
-    - input: Input tensor.
-    - dim: Dimension along which to find the maximum values.
-
+        input: Input tensor to find maximum values in
+        dim: Dimension along which to find maximum values
+        
     Returns:
-    - A tensor of the same shape as the input tensor, where each element is 1 if it is the maximum value along the specified dimension, and 0 otherwise.
-
+        Binary tensor with ones at maximum value positions
+        
     """
     max_tensor = fastmax(input, dim)
     return max_tensor == input
@@ -120,17 +120,16 @@ class Max(Function):
 
 def max(input: Tensor, dim: int) -> Tensor:
     """Applies the Max function to the input tensor along the specified dimension.
-
+    
     Args:
-    - input: The input tensor.
-    - dim: The dimension along which to apply the Max function.
-
+        input: Input tensor to find maximum values in
+        dim: Dimension along which to find maximum values
+        
     Returns:
-    - A tensor containing the maximum values along the specified dimension.
+        Tensor containing maximum values along specified dimension
 
     """
     return Max.apply(input, input._ensure_tensor(dim))
-
 
 def softmax(input: Tensor, dim: int) -> Tensor:
     """Softmax"""
