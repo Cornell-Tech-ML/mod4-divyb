@@ -1,3 +1,8 @@
+"""Implementation of a CNN model for MNIST digit classification.
+
+This module contains the implementation of a Convolutional Neural Network (CNN)
+for classifying MNIST digits, including the model architecture and training loop."""
+
 from mnist import MNIST
 
 import minitorch
@@ -16,11 +21,13 @@ H, W = 28, 28
 
 
 def RParam(*shape):
+    """Create a random parameter tensor of the given shape."""
     r = 0.1 * (minitorch.rand(shape, backend=BACKEND) - 0.5)
     return minitorch.Parameter(r)
 
 
 class Linear(minitorch.Module):
+    """A linear transformation layer implementing y = xW + b."""
     def __init__(self, in_size, out_size):
         super().__init__()
         self.weights = RParam(in_size, out_size)
@@ -35,6 +42,7 @@ class Linear(minitorch.Module):
 
 
 class Conv2d(minitorch.Module):
+    """A 2D convolutional layer with learnable weights and bias."""
     def __init__(self, in_channels, out_channels, kh, kw):
         super().__init__()
         self.weights = RParam(out_channels, in_channels, kh, kw)
@@ -46,18 +54,14 @@ class Conv2d(minitorch.Module):
 
 
 class Network(minitorch.Module):
-    """
-    Implement a CNN for MNist classification based on LeNet.
-
-    This model should implement the following procedure:
-
-    1. Apply a convolution with 4 output channels and a 3x3 kernel followed by a ReLU (save to self.mid)
-    2. Apply a convolution with 8 output channels and a 3x3 kernel followed by a ReLU (save to self.out)
-    3. Apply 2D pooling (either Avg or Max) with 4x4 kernel.
-    4. Flatten channels, height, and width. (Should be size BATCHx392)
-    5. Apply a Linear to size 64 followed by a ReLU and Dropout with rate 25%
-    6. Apply a Linear to size C (number of classes).
-    7. Apply a logsoftmax over the class dimension.
+    """A CNN for MNIST classification based on LeNet architecture.
+    
+    Architecture:
+    1. Conv2d(1→4, 3x3) + ReLU
+    2. Conv2d(4→8, 3x3) + ReLU
+    3. MaxPool2d(4x4)
+    4. Linear(392→64) + ReLU + Dropout(0.25)
+    5. Linear(64→10) + LogSoftmax
     """
 
     def __init__(self):
@@ -94,6 +98,15 @@ class Network(minitorch.Module):
         return minitorch.logsoftmax(log, dim=1)
     
 def make_mnist(start, stop):
+    """Create MNIST data tensors from the given range of examples.
+    
+    Args:
+        start: Starting index of MNIST examples
+        stop: Ending index of MNIST examples
+        
+    Returns:
+        Tuple of (images, labels) as processed tensors
+    """
     ys = []
     X = []
     for i in range(start, stop):
@@ -106,10 +119,21 @@ def make_mnist(start, stop):
 
 
 def default_log_fn(epoch, total_loss, correct, total, losses, model):
+    """Log training progress.
+    
+    Args:
+        epoch: Current training epoch
+        total_loss: Total loss for this epoch
+        correct: Number of correct predictions
+        total: Total number of predictions
+        losses: List of all losses
+        model: Current model state
+    """
     print(f"Epoch {epoch} loss {total_loss} valid acc {correct}/{total}")
 
 
 class ImageTrain:
+    """Handles the training process for the MNIST CNN classifier."""
     def __init__(self):
         self.model = Network()
 
