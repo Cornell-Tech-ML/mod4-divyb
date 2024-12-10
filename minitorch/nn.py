@@ -36,7 +36,79 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
     assert height % kh == 0
     assert width % kw == 0
     # TODO: Implement for Task 4.3.
-    raise NotImplementedError("Need to implement for Task 4.3")
+    pooled_height = height // kh
+    pooled_width = width // kw
 
+    reshaped_tensor = input.contiguous().view(
+        batch, channel, pooled_height, kh, pooled_width, kw
+    )
+
+    permuted_tensor = reshaped_tensor.permute(0, 1, 2, 4, 3, 5).contiguous()
+    final_output = permuted_tensor.view(
+        batch, channel, pooled_height, pooled_width, kh * kw
+    )
+
+    return final_output, pooled_height, pooled_width
 
 # TODO: Implement for Task 4.3.
+
+def avgpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
+    reshaped_tensor, pooled_height, pooled_width = tile(input, kernel)
+    return (
+        reshaped_tensor.mean(4)
+        .contiguous()
+        .view(reshaped_tensor.shape[0], reshaped_tensor.shape[1], pooled_height, pooled_width)
+    )
+
+
+fastmax = FastOps.reduce(operators.max, -float("inf"))
+
+
+
+def argmax(input: Tensor, dim: int) -> Tensor:
+    max_tensor = fastmax(input, dim)
+    return max_tensor == input
+
+
+class Max(Function):
+    @staticmethod
+    def forward(ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+        ctx.save_for_backward(a, int(dim.item()))
+        return fastmax(a, int(dim.item()))
+
+    @staticmethod
+    def backward(ctx: Context, grad_out: Tensor) -> Tuple[Tensor, float]:
+        saved_input, saved_dim = ctx.saved_values
+        return grad_out * argmax(saved_input, saved_dim), 0.0
+
+
+def max(input: Tensor, dim: int) -> Tensor:
+    return Max.apply(input, input._ensure_tensor(dim))
+
+
+def softmax(input: Tensor, dim: int) -> Tensor:
+    exp_tensor = input.exp()
+    exp_sum = exp_tensor.sum(dim)
+    return exp_tensor / exp_sum
+
+
+def logsoftmax(input: Tensor, dim: int) -> Tensor:
+    return softmax(input, dim).log()
+
+
+def maxpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
+    batch_size, num_channels, img_height, img_width = input.shape
+    tiled_tensor, pooled_height, pooled_width = tile(input, kernel)
+    return max(tiled_tensor, dim=4).contiguous().view(batch_size, num_channels, pooled_height, pooled_width)
+
+
+def dropout(input: Tensor, prob: float, ignore: bool = False) -> Tensor:
+    
+    if ignore or prob == 0.0:
+        return input
+
+    if prob == 1.0:
+        return input.zeros()
+
+    dropout_mask = rand(input.shape) > prob
+    return input * dropout_mask

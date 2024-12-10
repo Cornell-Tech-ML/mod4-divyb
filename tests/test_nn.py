@@ -32,8 +32,22 @@ def test_avg(t: Tensor) -> None:
 @given(tensors(shape=(2, 3, 4)))
 def test_max(t: Tensor) -> None:
     # TODO: Implement for Task 4.4.
-    raise NotImplementedError("Need to implement for Task 4.4")
 
+    for axis in range(3):
+        result = minitorch.max(t, axis)
+
+        if axis == 0:
+            for row in range(3):
+                for col in range(4):
+                    assert_close(result[0, row, col], max([t[layer, row, col] for layer in range(2)]))
+        elif axis == 1:
+            for batch in range(2):
+                for col in range(4):
+                    assert_close(result[batch, 0, col], max([t[batch, channel, col] for channel in range(3)]))
+        elif axis == 2:
+            for batch in range(2):
+                for channel in range(3):
+                    assert_close(result[batch, channel, 0], max([t[batch, channel, depth] for depth in range(4)]))
 
 @pytest.mark.task4_4
 @given(tensors(shape=(1, 1, 4, 4)))
