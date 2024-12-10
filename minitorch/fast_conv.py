@@ -22,6 +22,9 @@ Fn = TypeVar("Fn")
 
 
 def njit(fn: Fn, **kwargs: Any) -> Fn:
+    """Function is a decorator that uses the `njit` function from the `numba` library.
+    It is used to JIT compile the decorated function for faster execution.
+    """
     return _njit(inline="always", **kwargs)(fn)  # type: ignore
 
 
@@ -122,7 +125,25 @@ tensor_conv1d = njit(_tensor_conv1d, parallel=True)
 
 
 class Conv1dFun(Function):
+    """Represents a 1D convolution operation.
+
+    This class encapsulates the forward and backward passes for a 1D convolution operation.
+    It is designed to work with tensors and supports both forward and backward propagation.
+    """
+
     @staticmethod
+    def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
+        """Computes a 1D convolution operation on the input tensor using the given weight tensor.
+
+        Args:
+            ctx (Context): The context in which the operation is performed.
+            input (Tensor): The input tensor to which the convolution operation is applied.
+            weight (Tensor): The weight tensor used for the convolution operation.
+
+        Returns:
+            Tensor: The output tensor resulting from the convolution operation.
+            
+        """
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
         """Compute a 1D Convolution
 
@@ -151,6 +172,16 @@ class Conv1dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Computes the gradients of the input and weight tensors for the 1D convolution operation.
+
+        Args:
+            ctx (Context): The context in which the operation is performed.
+            grad_output (Tensor): The gradient of the output tensor.
+
+        Returns:
+            Tuple[Tensor, Tensor]: A tuple containing the gradients of the input and weight tensors.
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
@@ -227,7 +258,6 @@ def _tensor_conv2d(
         reverse (bool): anchor weight at top-left or bottom-right
 
     """
-
     batch_, out_channels, out_height, out_width = out_shape
     batch, in_channels, height, width = input_shape
     out_channels_, in_channels_, kh, kw = weight_shape
@@ -295,6 +325,11 @@ tensor_conv2d = njit(_tensor_conv2d, parallel=True, fastmath=True)
 
 
 class Conv2dFun(Function):
+    """Class represents a 2D convolution operation. It is a subclass of the Function class from the autodiff module.
+    It is designed to compute a 2D convolution between an input tensor and a weight tensor, producing an output tensor.
+    The forward method computes the convolution, and the backward method computes the gradients of the loss with respect to the input and weights.
+    """
+
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
         """Compute a 2D Convolution
@@ -322,6 +357,21 @@ class Conv2dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Computes the gradients of the loss with respect to the input and weights for a 2D convolution operation.
+
+        Args:
+        ----
+            ctx : Context
+                The context in which the forward operation was performed.
+            grad_output : Tensor
+                The gradient of the loss with respect to the output of the convolution operation.
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]
+                A tuple containing the gradients of the loss with respect to the input and weights.
+                
+        """
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape
         out_channels, in_channels, kh, kw = weight.shape
