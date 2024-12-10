@@ -55,7 +55,7 @@ class Conv2d(minitorch.Module):
 
 class Network(minitorch.Module):
     """A CNN for MNIST classification based on LeNet architecture.
-    
+
     Architecture:
     1. Conv2d(1→4, 3x3) + ReLU
     2. Conv2d(4→8, 3x3) + ReLU
@@ -76,7 +76,7 @@ class Network(minitorch.Module):
         self.conv2 = Conv2d(4, 8, 3, 3)
         self.linear1 = Linear(392, 64)
         self.linear2 = Linear(64, C)
-    
+
 
     def forward(self, x):
         self.mid = self.conv1.forward(x)
@@ -96,14 +96,14 @@ class Network(minitorch.Module):
         log = self.linear2.forward(hidden)
 
         return minitorch.logsoftmax(log, dim=1)
-    
+
 def make_mnist(start, stop):
     """Create MNIST data tensors from the given range of examples.
-    
+
     Args:
         start: Starting index of MNIST examples
         stop: Ending index of MNIST examples
-        
+
     Returns:
         Tuple of (images, labels) as processed tensors
     """
@@ -120,7 +120,7 @@ def make_mnist(start, stop):
 
 def default_log_fn(epoch, total_loss, correct, total, losses, model):
     """Log training progress.
-    
+
     Args:
         epoch: Current training epoch
         total_loss: Total loss for this epoch

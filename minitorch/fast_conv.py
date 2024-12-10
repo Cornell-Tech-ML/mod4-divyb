@@ -1,14 +1,11 @@
 from typing import Tuple, TypeVar, Any
 
-import numpy as np
 from numba import prange
 from numba import njit as _njit
 
 from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
-    MAX_DIMS,
-    Index,
     Shape,
     Strides,
     Storage,
@@ -94,7 +91,7 @@ def _tensor_conv1d(
     s2 = weight_strides
 
     # TODO: Implement for Task 4.1.
-    
+
     for b in prange(batch_):
         for oc in prange(out_channels):
             for ow in prange(out_width):
@@ -120,6 +117,7 @@ def _tensor_conv1d(
                 # Compute output position and store the result
                 out_pos = b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
                 out[out_pos] = acc
+
 
 tensor_conv1d = njit(_tensor_conv1d, parallel=True)
 
@@ -163,10 +161,12 @@ class Conv1dFun(Function):
         """Computes the gradients of the input and weight tensors for the 1D convolution operation.
 
         Args:
+        ----
             ctx (Context): The context in which the operation is performed.
             grad_output (Tensor): The gradient of the output tensor.
 
         Returns:
+        -------
             Tuple[Tensor, Tensor]: A tuple containing the gradients of the input and weight tensors.
 
         """
@@ -280,7 +280,10 @@ def _tensor_conv2d(
                                     current_row = row_out_idx + kernel_row_idx
                                     current_col = col_out_idx + kernel_col_idx
 
-                                if 0 <= current_row < height and 0 <= current_col < width:
+                                if (
+                                    0 <= current_row < height
+                                    and 0 <= current_col < width
+                                ):
                                     input_position = (
                                         batch_idx * s10
                                         + channel_in_idx * s11
@@ -307,8 +310,6 @@ def _tensor_conv2d(
                     out[output_position] = result_accumulator
 
 
-
-    
 tensor_conv2d = njit(_tensor_conv2d, parallel=True, fastmath=True)
 
 

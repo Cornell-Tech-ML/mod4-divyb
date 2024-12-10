@@ -9,7 +9,7 @@ from . import operators
 from .autodiff import Context
 from .fast_ops import FastOps
 from .tensor import Tensor
-from .tensor_functions import Function, rand, tensor
+from .tensor_functions import Function, rand
 
 
 # List of functions in this file:
@@ -62,14 +62,16 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
 
 def avgpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
     """Applies a 2D average pooling over an input signal composed of several input planes.
-    
+
     Args:
+    ----
         input: Input tensor of shape (batch, channel, height, width)
         kernel: Tuple of (kernel_height, kernel_width) for pooling
-        
+
     Returns:
+    -------
         Pooled output tensor
-        
+
     """
     reshaped_tensor, pooled_height, pooled_width = tile(input, kernel)
     return (
@@ -89,14 +91,16 @@ fastmax = FastOps.reduce(operators.max, -float("inf"))
 
 def argmax(input: Tensor, dim: int) -> Tensor:
     """Returns a tensor indicating the positions of the maximum values in the input tensor along the specified dimension.
-    
+
     Args:
+    ----
         input: Input tensor to find maximum values in
         dim: Dimension along which to find maximum values
-        
+
     Returns:
+    -------
         Binary tensor with ones at maximum value positions
-        
+
     """
     max_tensor = fastmax(input, dim)
     return max_tensor == input
@@ -120,16 +124,19 @@ class Max(Function):
 
 def max(input: Tensor, dim: int) -> Tensor:
     """Applies the Max function to the input tensor along the specified dimension.
-    
+
     Args:
+    ----
         input: Input tensor to find maximum values in
         dim: Dimension along which to find maximum values
-        
+
     Returns:
+    -------
         Tensor containing maximum values along specified dimension
 
     """
     return Max.apply(input, input._ensure_tensor(dim))
+
 
 def softmax(input: Tensor, dim: int) -> Tensor:
     """Softmax"""
@@ -154,15 +161,17 @@ def maxpool2d(input: Tensor, kernel: Tuple[int, int]) -> Tensor:
     )
 
 
-def dropout(input: Tensor, prob: float, ignore: bool = False) -> Tensor:    
+def dropout(input: Tensor, prob: float, ignore: bool = False) -> Tensor:
     """Apply dropout to the input tensor.
-    
+
     Args:
+    ----
         input: Input tensor to apply dropout to
         prob: Probability of dropping a unit (setting it to 0)
         ignore: If True, no dropout is applied
-        
+
     Returns:
+    -------
         Tensor with dropout applied
 
     """
